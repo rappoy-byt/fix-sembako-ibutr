@@ -51,6 +51,14 @@ export function BatchFormDialog({
   const [incomingDate, setIncomingDate] = useState(today);
   const [expiryDate, setExpiryDate] = useState(autoExpiry(today));
   const [expiryEdited, setExpiryEdited] = useState(false);
+  // Saran dibekukan saat dialog dibuka: revalidate setelah simpan mengirim saran baru
+  // selagi animasi tutup berjalan, dan defaultValue input uncontrolled tidak boleh berubah.
+  const [prevOpen, setPrevOpen] = useState(open);
+  const [defaultBatchNumber, setDefaultBatchNumber] = useState(suggestedBatchNumber);
+  if (open !== prevOpen) {
+    setPrevOpen(open);
+    if (open) setDefaultBatchNumber(suggestedBatchNumber);
+  }
 
   const requiresExpiry = defaultExpiryDays !== null;
 
@@ -134,7 +142,7 @@ export function BatchFormDialog({
             <Input
               id="batch-batch_number"
               name="batch_number"
-              defaultValue={suggestedBatchNumber}
+              defaultValue={defaultBatchNumber}
               maxLength={50}
               autoComplete="off"
               disabled={isPending}

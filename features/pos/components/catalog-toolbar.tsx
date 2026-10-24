@@ -34,10 +34,10 @@ export function ProductSearch({ value, onChange, onSubmit }: ProductSearchProps)
         value={value}
         onChange={(e) => onChange(e.target.value)}
         onKeyDown={handleKeyDown}
-        placeholder="Cari nama barang atau scan / ketik SKU lalu Enter…"
+        placeholder="Cari nama barang atau scan barcode"
         aria-label="Cari nama barang atau SKU"
         autoComplete="off"
-        className="h-11 bg-card pr-10 pl-9 text-base"
+        className="h-10 rounded-lg border-transparent bg-muted pr-24 pl-9 text-base focus-visible:bg-card"
         autoFocus
       />
       {value ? (
@@ -45,15 +45,16 @@ export function ProductSearch({ value, onChange, onSubmit }: ProductSearchProps)
           type="button"
           onClick={() => onChange("")}
           aria-label="Hapus pencarian"
-          className="absolute top-1/2 right-2 flex size-7 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
+          className="absolute top-1/2 right-2 flex size-7 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground hover:bg-background hover:text-foreground"
         >
           <X className="size-4" />
         </button>
       ) : (
-        <ScanBarcode
-          aria-hidden
-          className="pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2 text-muted-foreground"
-        />
+        // Scanner barcode mengetik SKU + Enter ke kolom ini; label hanya petunjuk.
+        <span className="pointer-events-none absolute top-1/2 right-2 flex -translate-y-1/2 items-center gap-1.5 rounded-md border bg-card px-2 py-1 text-xs font-medium text-muted-foreground">
+          <ScanBarcode aria-hidden className="size-3.5" />
+          Scan
+        </span>
       )}
     </div>
   );
@@ -65,14 +66,14 @@ interface CategoryFilterProps {
   onSelect: (id: string | null) => void;
 }
 
-/** Chip kategori yang bisa digulir horizontal di layar sempit. */
+/** Tab kategori bergaris bawah; bisa digulir horizontal di layar sempit. */
 export function CategoryFilter({ categories, selectedId, onSelect }: CategoryFilterProps) {
   const options = [{ id: null, name: "Semua" }, ...categories];
   return (
     <div
       role="radiogroup"
       aria-label="Filter kategori"
-      className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1 sm:flex-wrap sm:overflow-visible"
+      className="flex gap-5 overflow-x-auto [scrollbar-width:none]"
     >
       {options.map((option) => {
         const active = option.id === selectedId;
@@ -84,11 +85,11 @@ export function CategoryFilter({ categories, selectedId, onSelect }: CategoryFil
             aria-checked={active}
             onClick={() => onSelect(option.id)}
             className={cn(
-              "h-8 shrink-0 rounded-full border px-3 text-sm font-medium whitespace-nowrap transition-colors",
-              "focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none",
+              "-mb-px shrink-0 border-b-2 py-2.5 text-sm whitespace-nowrap transition-colors",
+              "focus-visible:text-foreground focus-visible:outline-none",
               active
-                ? "border-primary bg-primary text-primary-foreground"
-                : "bg-card text-muted-foreground hover:bg-muted hover:text-foreground"
+                ? "border-primary font-semibold text-primary"
+                : "border-transparent text-muted-foreground hover:text-foreground"
             )}
           >
             {option.name}

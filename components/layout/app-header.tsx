@@ -7,7 +7,7 @@ import { formatLongDate } from "@/lib/format";
 import type { NotificationFeed } from "@/features/notifications/data";
 import type { QueryResult } from "@/types/domain";
 
-import { findNavItem } from "./nav-config";
+import { findNavItem, isCashierPath } from "./nav-config";
 import { NotificationBell } from "./notification-bell";
 import { UserMenu } from "./user-menu";
 
@@ -19,6 +19,9 @@ interface AppHeaderProps {
 export function AppHeader({ ownerEmail, notifications }: AppHeaderProps) {
   const pathname = usePathname();
   const current = findNavItem(pathname);
+
+  // Mode kasir tidak memakai header; keluar hanya lewat tombol di sidebar.
+  if (isCashierPath(pathname)) return null;
 
   return (
     <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-4 border-b bg-background/95 px-4 backdrop-blur supports-backdrop-filter:bg-background/80 lg:px-6">

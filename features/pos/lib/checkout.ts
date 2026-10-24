@@ -135,7 +135,7 @@ export function describeCheckoutError(code: CheckoutErrorCode, rawDetails?: stri
         : "Uang tunai kurang dari total belanja.";
     }
     case "INVALID_PAYMENT_METHOD":
-      return "Metode pembayaran tidak valid. Pilih Tunai, QRIS, atau Debit.";
+      return "Metode pembayaran tidak valid. Pilih Tunai atau QRIS.";
     case "EMPTY_CART":
       return "Keranjang masih kosong.";
     case "INVALID_TRANSACTION_ID":

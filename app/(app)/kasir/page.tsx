@@ -37,7 +37,7 @@ async function PosContent() {
 function PosSkeleton() {
   return (
     <div
-      className="grid gap-4 lg:h-[calc(100svh-3.5rem-3rem)] lg:grid-cols-[minmax(0,1fr)_360px] xl:grid-cols-[minmax(0,1fr)_400px]"
+      className="grid gap-4 lg:h-[calc(100svh-2rem)] lg:grid-cols-[minmax(0,1fr)_360px] xl:grid-cols-[minmax(0,1fr)_400px]"
       aria-busy="true"
       aria-label="Memuat katalog kasir"
     >

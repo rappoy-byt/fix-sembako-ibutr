@@ -3,8 +3,10 @@ import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
 import { AppHeader } from "@/components/layout/app-header";
+import { AppMain } from "@/components/layout/app-main";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { InventoryNotificationSync } from "@/components/layout/expired-batch-sync";
+import { PosNavigationGuardProvider } from "@/components/layout/pos-navigation-guard";
 import { getCurrentOwner } from "@/features/auth/queries";
 import { getNotifications } from "@/features/notifications/data";
 
@@ -33,16 +35,17 @@ async function AuthenticatedShell({ children }: { children: React.ReactNode }) {
   const unreadCount = notifications.data?.unreadCount ?? 0;
 
   return (
-    <div className="flex min-h-svh">
-      <AppSidebar unreadCount={unreadCount} />
-      <div className="flex min-w-0 flex-1 flex-col">
-        <AppHeader ownerEmail={owner.email} notifications={notifications} />
-        <main className="flex-1 px-4 py-6 lg:px-8">
-          <div className="mx-auto w-full max-w-[1440px]">{children}</div>
-        </main>
+    // Penjaga POS Focus Mode: sidebar, header, dan halaman kasir berbagi status transaksi.
+    <PosNavigationGuardProvider>
+      <div className="flex min-h-svh">
+        <AppSidebar unreadCount={unreadCount} />
+        <div className="flex min-w-0 flex-1 flex-col">
+          <AppHeader ownerEmail={owner.email} notifications={notifications} />
+          <AppMain>{children}</AppMain>
+        </div>
+        <InventoryNotificationSync />
       </div>
-      <InventoryNotificationSync />
-    </div>
+    </PosNavigationGuardProvider>
   );
 }
 

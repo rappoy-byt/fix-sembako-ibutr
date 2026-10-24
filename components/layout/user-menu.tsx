@@ -16,6 +16,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { signOut } from "@/features/auth/actions";
 
+import { usePosNavigationGuard } from "./pos-navigation-guard";
+
 interface UserMenuProps {
   email: string;
 }
@@ -24,11 +26,18 @@ export function UserMenu({ email }: UserMenuProps) {
   const [isPending, startTransition] = useTransition();
   const initial = (email.charAt(0) || "P").toUpperCase();
 
-  function handleSignOut() {
+  const { requestLeave } = usePosNavigationGuard();
+
+  function runSignOut() {
     startTransition(async () => {
       const result = await signOut();
       if (result?.error) toast.error(result.error);
     });
+  }
+
+  function handleSignOut() {
+    // POS Focus Mode: transaksi kasir yang belum selesai dikonfirmasi dulu.
+    if (requestLeave("logout", runSignOut)) runSignOut();
   }
 
   return (

@@ -16,7 +16,8 @@ import {
   type CheckoutResult,
 } from "./lib/checkout";
 
-const PAYMENT_METHODS: readonly PaymentMethod[] = ["CASH", "QRIS", "DEBIT"];
+// DEBIT tetap ada di enum database untuk transaksi lama, tetapi tidak lagi diterima kasir.
+const PAYMENT_METHODS: readonly PaymentMethod[] = ["CASH", "QRIS"];
 const MAX_LINES = 200;
 
 function fail(code: Extract<CheckoutResult, { ok: false }>["code"]): CheckoutResult {

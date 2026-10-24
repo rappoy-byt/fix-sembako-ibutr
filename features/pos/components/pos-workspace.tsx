@@ -3,9 +3,10 @@
 import { ChevronUp, PackageOpen, SearchX, ShoppingBasket } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useMemo, useReducer, useRef, useState } from "react";
+import { useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { toast } from "sonner";
 
+import { usePosNavigationGuard } from "@/components/layout/pos-navigation-guard";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -16,10 +17,11 @@ import { checkout } from "../actions";
 import { cartReducer, getCartTotals, resolveCart, type CartAction } from "../lib/cart";
 import { matchesQuery, sortPosProducts, type PosCategory, type PosProduct } from "../lib/catalog";
 import { describeCheckoutError, type CheckoutReceipt } from "../lib/checkout";
+import { getPosGuardLevel } from "../lib/navigation-guard";
 import { CartPanel } from "./cart-panel";
 import { CategoryFilter, ProductSearch } from "./catalog-toolbar";
 import { CheckoutSuccessDialog } from "./checkout-success-dialog";
-import { parsePaidAmount } from "./payment-section";
+import { parsePaidAmount, PaymentDialog } from "./payment-dialog";
 import { ProductCard } from "./product-card";
 
 const BLOCKED_MESSAGE: Record<Exclude<PosProduct["sellability"], "sellable">, string> = {
@@ -44,6 +46,7 @@ export function PosWorkspace({ products, categories, today }: PosWorkspaceProps)
   const [method, setMethod] = useState<PaymentMethod>("CASH");
   const [paidAmount, setPaidAmount] = useState("");
   const [mobileCartOpen, setMobileCartOpen] = useState(false);
+  const [paymentOpen, setPaymentOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [receipt, setReceipt] = useState<CheckoutReceipt | null>(null);
 
@@ -58,6 +61,7 @@ export function PosWorkspace({ products, categories, today }: PosWorkspaceProps)
 
   const sorted = useMemo(() => sortPosProducts(products), [products]);
   const productsById = useMemo(() => new Map(products.map((p) => [p.id, p])), [products]);
+  const imageUrls = useMemo(() => new Map(products.map((p) => [p.id, p.imageUrl])), [products]);
   const inactiveCount = useMemo(() => products.filter((p) => p.sellability === "inactive").length, [products]);
 
   const visible = useMemo(
@@ -71,21 +75,45 @@ export function PosWorkspace({ products, categories, today }: PosWorkspaceProps)
     [sorted, showInactive, categoryId, query]
   );
 
+  // POS Focus Mode: laporkan status transaksi ke penjaga navigasi di layout.
+  // Dibaca di dalam efek (bukan saat render) karena pendingTransactionIdRef adalah ref;
+  // efek berjalan ulang setiap isi keranjang atau status kirim berubah, termasuk
+  // sesudah handlePay selesai (setIsSubmitting(false)).
+  const { reportPosState } = usePosNavigationGuard();
+  useEffect(() => {
+    reportPosState(
+      getPosGuardLevel({
+        lineCount: lines.length,
+        isSubmitting,
+        hasPendingTransactionId: pendingTransactionIdRef.current !== null,
+      })
+    );
+  }, [reportPosState, lines.length, isSubmitting]);
+  // Saat kasir ditinggalkan (unmount, atau disembunyikan oleh <Activity> Next.js),
+  // laporkan kasir tidak aktif (null) agar menu lain kembali normal. Saat terlihat
+  // lagi, efek di atas berjalan ulang dan melaporkan status terbaru.
+  useEffect(() => () => reportPosState(null), [reportPosState]);
+
   const cartItems = useMemo(() => resolveCart(lines, productsById), [lines, productsById]);
   const quantityInCart = useMemo(() => new Map(lines.map((l) => [l.productId, l.quantity])), [lines]);
   const totals = getCartTotals(cartItems);
   const paid = parsePaidAmount(paidAmount);
 
-  const blockReason =
+  /** Syarat membuka layar pembayaran (dari panel pesanan). */
+  const cartBlockReason =
     totals.lineCount === 0
       ? "Tambahkan barang ke keranjang untuk membayar."
       : totals.hasIssues
         ? "Perbaiki barang bertanda merah di keranjang sebelum membayar."
-        : method === "CASH" && paid === null
-          ? "Masukkan nominal pembayaran tunai."
-          : method === "CASH" && paid !== null && paid < totals.total
-            ? "Nominal pembayaran kurang dari total."
-            : null;
+        : null;
+  /** Syarat menyelesaikan pembayaran (di layar pembayaran). */
+  const blockReason =
+    cartBlockReason ??
+    (method === "CASH" && paid === null
+      ? "Masukkan nominal uang yang diterima."
+      : method === "CASH" && paid !== null && paid < totals.total
+        ? "Uang yang diterima kurang dari total."
+        : null);
 
   /** Setiap perubahan isi keranjang = checkout baru → transaction_id baru. */
   function updateCart(action: CartAction) {
@@ -149,6 +177,7 @@ export function PosWorkspace({ products, categories, today }: PosWorkspaceProps)
         setPaidAmount("");
         setMethod("CASH");
         setMobileCartOpen(false);
+        setPaymentOpen(false);
         setReceipt(result.receipt);
         router.refresh(); // stok terbaru setelah dikurangi FEFO
         return;
@@ -170,8 +199,16 @@ export function PosWorkspace({ products, categories, today }: PosWorkspaceProps)
     }
   }
 
+  function openPayment() {
+    if (cartBlockReason !== null) return;
+    // Sheet keranjang mobile ditutup agar tidak ada dua overlay bertumpuk.
+    setMobileCartOpen(false);
+    setPaymentOpen(true);
+  }
+
   const cartPanelProps = {
     items: cartItems,
+    imageUrls,
     onQuantityChange: (productId: string, quantity: number) =>
       updateCart({
         type: "setQuantity",
@@ -181,13 +218,9 @@ export function PosWorkspace({ products, categories, today }: PosWorkspaceProps)
       }),
     onRemove: (productId: string) => updateCart({ type: "remove", productId }),
     onClear: clearCart,
-    method,
-    onMethodChange: setMethod,
-    paidAmount,
-    onPaidAmountChange: setPaidAmount,
-    blockReason,
+    blockReason: cartBlockReason,
     isSubmitting,
-    onPay: handlePay,
+    onCheckout: openPayment,
   };
 
   const successDialog = <CheckoutSuccessDialog receipt={receipt} onClose={() => setReceipt(null)} />;
@@ -212,12 +245,17 @@ export function PosWorkspace({ products, categories, today }: PosWorkspaceProps)
 
   return (
     <>
-      <div className="grid gap-4 lg:h-[calc(100svh-3.5rem-3rem)] lg:grid-cols-[minmax(0,1fr)_360px] xl:grid-cols-[minmax(0,1fr)_400px]">
-        <section aria-label="Katalog barang" className="flex min-h-0 flex-col gap-3 pb-20 lg:pb-0">
-          <ProductSearch value={query} onChange={setQuery} onSubmit={handleSearchSubmit} />
-          <CategoryFilter categories={categories} selectedId={categoryId} onSelect={setCategoryId} />
+      <div className="grid gap-4 lg:h-[calc(100svh-2rem)] lg:grid-cols-[minmax(0,1fr)_360px] xl:grid-cols-[minmax(0,1fr)_400px]">
+        <section
+          aria-label="Katalog barang"
+          className="mb-20 flex min-h-0 flex-col overflow-hidden rounded-xl border bg-card lg:mb-0"
+        >
+          <div className="space-y-1 border-b px-4 pt-3">
+            <ProductSearch value={query} onChange={setQuery} onSubmit={handleSearchSubmit} />
+            <CategoryFilter categories={categories} selectedId={categoryId} onSelect={setCategoryId} />
+          </div>
 
-          <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
+          <div className="flex flex-wrap items-center justify-between gap-2 px-4 pt-3 pb-2 text-xs text-muted-foreground">
             <span className="numeric">
               {formatNumber(visible.length)} barang
               {visible.length !== products.length && ` dari ${formatNumber(products.length)}`}
@@ -235,7 +273,7 @@ export function PosWorkspace({ products, categories, today }: PosWorkspaceProps)
             )}
           </div>
 
-          <div className="min-h-0 flex-1 lg:overflow-y-auto lg:pr-1">
+          <div className="min-h-0 flex-1 px-4 pb-4 lg:overflow-y-auto">
             {visible.length === 0 ? (
               <EmptyState
                 icon={SearchX}
@@ -243,7 +281,7 @@ export function PosWorkspace({ products, categories, today }: PosWorkspaceProps)
                 description="Coba kata kunci lain, periksa SKU, atau pilih kategori Semua."
               />
             ) : (
-              <div className="grid grid-cols-1 gap-3 min-[420px]:grid-cols-2 md:grid-cols-3 2xl:grid-cols-4">
+              <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
                 {visible.map((product) => (
                   <ProductCard
                     key={product.id}
@@ -262,7 +300,7 @@ export function PosWorkspace({ products, categories, today }: PosWorkspaceProps)
       </div>
 
       {/* Layar kecil: ringkasan keranjang menempel di bawah, isi lengkap di sheet. */}
-      <div className="fixed right-0 bottom-0 left-16 z-20 border-t bg-background/95 p-3 backdrop-blur lg:hidden">
+      <div className="fixed right-0 bottom-0 left-26 z-20 border-t bg-background/95 p-3 backdrop-blur lg:hidden">
         <Button size="lg" className="h-12 w-full justify-between text-base" onClick={() => setMobileCartOpen(true)}>
           <span className="flex items-center gap-2">
             <ShoppingBasket />
@@ -284,6 +322,19 @@ export function PosWorkspace({ products, categories, today }: PosWorkspaceProps)
           <CartPanel {...cartPanelProps} className="min-h-0 rounded-none border-0" />
         </SheetContent>
       </Sheet>
+
+      <PaymentDialog
+        open={paymentOpen}
+        onOpenChange={setPaymentOpen}
+        total={totals.total}
+        method={method}
+        onMethodChange={setMethod}
+        paidAmount={paidAmount}
+        onPaidAmountChange={setPaidAmount}
+        blockReason={blockReason}
+        isSubmitting={isSubmitting}
+        onPay={handlePay}
+      />
 
       {successDialog}
     </>

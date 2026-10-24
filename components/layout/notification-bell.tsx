@@ -17,6 +17,8 @@ import type { NotificationFeed } from "@/features/notifications/data";
 import { NotificationItem } from "@/features/notifications/components/notification-item";
 import type { QueryResult } from "@/types/domain";
 
+import { useGuardedNavigate } from "./pos-navigation-guard";
+
 const PREVIEW_LIMIT = 4;
 
 interface NotificationBellProps {
@@ -24,6 +26,7 @@ interface NotificationBellProps {
 }
 
 export function NotificationBell({ feed }: NotificationBellProps) {
+  const guardedNavigate = useGuardedNavigate();
   const items = feed.data?.items ?? [];
   const unreadCount = feed.data?.unreadCount ?? 0;
   const hasUnreadExpired = items.some((n) => !n.isRead && n.type === "EXPIRED");
@@ -88,7 +91,7 @@ export function NotificationBell({ feed }: NotificationBellProps) {
         <DropdownMenuSeparator className="my-0" />
         <div className="p-1">
           <DropdownMenuItem
-            render={<Link href="/notifikasi" />}
+            render={<Link href="/notifikasi" onNavigate={guardedNavigate("/notifikasi")} />}
             className="justify-center py-2 text-sm font-medium"
           >
             Lihat semua notifikasi

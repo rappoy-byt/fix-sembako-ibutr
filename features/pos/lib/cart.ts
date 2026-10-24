@@ -118,8 +118,23 @@ export function getChange(total: number, paid: number) {
   return paid - total;
 }
 
-export const PAYMENT_METHODS: { value: PaymentMethod; label: string }[] = [
+/**
+ * Saran nominal tunai di atas total: dibulatkan ke pecahan yang umum
+ * (5rb, 10rb, 50rb, 100rb) + satu tingkat 50rb berikutnya. Maksimal tiga.
+ * Contoh total 178.500 → 180.000, 200.000, 250.000.
+ */
+export function suggestCashAmounts(total: number, limit = 3) {
+  if (total <= 0) return [];
+  const roundUp = (step: number) => Math.ceil(total / step) * step;
+  const candidates = [5_000, 10_000, 50_000, 100_000].map(roundUp);
+  candidates.push(roundUp(50_000) + 50_000);
+  return [...new Set(candidates)]
+    .filter((amount) => amount > total)
+    .sort((a, b) => a - b)
+    .slice(0, limit);
+}
+
+export const PAYMENT_METHODS:{ value: PaymentMethod; label: string }[] = [
   { value: "CASH", label: "Tunai" },
   { value: "QRIS", label: "QRIS" },
-  { value: "DEBIT", label: "Debit / EDC" },
 ];

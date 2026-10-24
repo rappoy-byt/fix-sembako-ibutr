@@ -1,4 +1,4 @@
-import { Banknote, CreditCard, QrCode, ReceiptText, type LucideIcon } from "lucide-react";
+import { Banknote, CreditCard, QrCode, ReceiptText, ShoppingBag, Wallet, type LucideIcon } from "lucide-react";
 
 import { EmptyState } from "@/components/shared/empty-state";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,10 +8,10 @@ import type { PaymentMethod } from "@/types/domain";
 import type { SalesSummary } from "../lib/summary";
 import type { RecentTransaction } from "../queries";
 
-const METHODS: { value: PaymentMethod; label: string; icon: LucideIcon }[] = [
-  { value: "CASH", label: "Tunai", icon: Banknote },
-  { value: "QRIS", label: "QRIS", icon: QrCode },
-  { value: "DEBIT", label: "Debit / EDC", icon: CreditCard },
+const METHODS: { value: PaymentMethod; label: string; icon: LucideIcon; color: string }[] = [
+  { value: "CASH", label: "Tunai", icon: Banknote, color: "bg-success" },
+  { value: "QRIS", label: "QRIS", icon: QrCode, color: "bg-info" },
+  { value: "DEBIT", label: "Debit / EDC", icon: CreditCard, color: "bg-warning" },
 ];
 
 const timeFormatter = new Intl.DateTimeFormat("id-ID", {
@@ -22,39 +22,67 @@ const timeFormatter = new Intl.DateTimeFormat("id-ID", {
   timeZone: "Asia/Jakarta",
 });
 
+/** Tiga angka pendukung di samping banner pendapatan. */
+export function SalesMiniStats({ sales }: { sales: SalesSummary }) {
+  const items = [
+    { label: "Transaksi", value: formatNumber(sales.transactionCount), icon: ReceiptText },
+    { label: "Unit terjual", value: formatNumber(sales.unitsSold), icon: ShoppingBag },
+    { label: "Rata-rata per nota", value: formatRupiah(sales.averageTicket), icon: Wallet },
+  ];
+
+  return (
+    <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
+      {items.map(({ label, value, icon: Icon }) => (
+        <Card key={label} className="flex-row items-center gap-3 px-4 py-3.5">
+          <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-accent text-accent-foreground">
+            <Icon aria-hidden className="size-[18px]" />
+          </span>
+          <div className="min-w-0">
+            <p className="text-sm text-muted-foreground">{label}</p>
+            <p className="numeric truncate font-heading text-xl font-semibold tracking-tight">{value}</p>
+          </div>
+        </Card>
+      ))}
+    </div>
+  );
+}
+
 export function PaymentBreakdown({ sales }: { sales: SalesSummary }) {
+  // Debit sudah tidak dipakai kasir; tampil hanya bila ada transaksi lama agar total tetap cocok.
+  const methods = METHODS.filter(({ value }) => value !== "DEBIT" || sales.byMethod.DEBIT.count > 0);
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="font-semibold">Metode Pembayaran Hari Ini</CardTitle>
-        <CardDescription>Jumlah transaksi dan nominal per metode.</CardDescription>
+        <CardTitle className="font-semibold">Metode pembayaran</CardTitle>
+        <CardDescription>Porsi pendapatan hari ini per metode.</CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-5">
+        {/* Satu bilah bertumpuk; abu-abu penuh bila belum ada penjualan. */}
+        <div
+          className="flex h-2.5 overflow-hidden rounded-full bg-muted"
+          role="img"
+          aria-label={methods.map(({ value, label }) => `${label} ${share(sales, value)}%`).join(", ")}
+        >
+          {methods.map(({ value, color }) => (
+            <div key={value} className={color} style={{ width: `${share(sales, value)}%` }} />
+          ))}
+        </div>
+
         <ul className="space-y-3">
-          {METHODS.map(({ value, label, icon: Icon }) => {
+          {methods.map(({ value, label, icon: Icon, color }) => {
             const { count, total } = sales.byMethod[value];
-            const share = sales.revenue > 0 ? Math.round((total / sales.revenue) * 100) : 0;
             return (
-              <li key={value} className="space-y-1.5">
-                <div className="flex items-center justify-between gap-3 text-sm">
-                  <span className="flex items-center gap-2">
-                    <span className="flex size-7 items-center justify-center rounded-md bg-muted text-muted-foreground">
-                      <Icon aria-hidden className="size-3.5" />
-                    </span>
-                    {label}
-                    <span className="numeric text-xs text-muted-foreground">
-                      {formatNumber(count)} transaksi
-                    </span>
+              <li key={value} className="flex items-center justify-between gap-3 text-sm">
+                <span className="flex min-w-0 items-center gap-2.5">
+                  <span aria-hidden className={`size-2.5 shrink-0 rounded-sm ${color}`} />
+                  <Icon aria-hidden className="size-4 shrink-0 text-muted-foreground" />
+                  <span className="truncate">{label}</span>
+                  <span className="numeric shrink-0 text-xs text-muted-foreground">
+                    {formatNumber(count)} transaksi
                   </span>
-                  <span className="numeric font-medium">{formatRupiah(total)}</span>
-                </div>
-                <div
-                  className="h-1.5 overflow-hidden rounded-full bg-muted"
-                  role="img"
-                  aria-label={`${label}: ${share}% dari pendapatan hari ini`}
-                >
-                  <div className="h-full rounded-full bg-primary" style={{ width: `${share}%` }} />
-                </div>
+                </span>
+                <span className="numeric font-semibold">{formatRupiah(total)}</span>
               </li>
             );
           })}
@@ -62,6 +90,10 @@ export function PaymentBreakdown({ sales }: { sales: SalesSummary }) {
       </CardContent>
     </Card>
   );
+}
+
+function share(sales: SalesSummary, method: PaymentMethod) {
+  return sales.revenue > 0 ? Math.round((sales.byMethod[method].total / sales.revenue) * 100) : 0;
 }
 
 export function RecentTransactions({ transactions }: { transactions: RecentTransaction[] }) {
