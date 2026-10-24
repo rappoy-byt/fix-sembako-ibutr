@@ -189,7 +189,7 @@ async function syncExpired(
         message:
           `Batch ${b.batch_number} (sisa ${formatNumber(b.remaining_quantity)} ${unit}`.trimEnd() +
           `) sudah melewati tanggal kedaluwarsa ${formatDate(b.expiry_date ?? today)}. ` +
-          `Jangan dijual — pisahkan dari rak.`,
+          `Jangan dijual. Pisahkan dari rak.`,
       };
     });
 

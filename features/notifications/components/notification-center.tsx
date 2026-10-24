@@ -56,7 +56,7 @@ export function NotificationCenter({ items, unreadCount }: NotificationCenterPro
           <OctagonAlert aria-hidden className="mt-0.5 size-5 shrink-0 text-danger" />
           <div>
             <p className="font-semibold text-danger">
-              {unreadExpired} batch kedaluwarsa — tidak boleh dijual
+              {unreadExpired} batch kedaluwarsa, tidak boleh dijual
             </p>
             <p className="text-sm text-muted-foreground">
               Pisahkan barang dari rak. Batch kedaluwarsa tidak dihitung sebagai stok tersedia dan

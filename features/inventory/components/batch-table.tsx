@@ -75,7 +75,7 @@ export function BatchTable({ batches, unit, today, emptyAction }: BatchTableProp
                     </span>
                   ) : (
                     <span className="text-xs text-muted-foreground">
-                      {status === "expired" ? "Tidak dijual" : "—"}
+                      {status === "expired" ? "Tidak dijual" : "-"}
                     </span>
                   )}
                 </TableCell>

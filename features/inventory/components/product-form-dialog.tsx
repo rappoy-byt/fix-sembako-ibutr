@@ -85,7 +85,7 @@ export function ProductFormDialog({ open, onOpenChange, categories, product, onS
           </DialogTitle>
           <DialogDescription>
             {isEdit
-              ? "Perbarui data master barang. Stok tidak diubah di sini — stok dikelola per batch."
+              ? "Perbarui data master barang. Stok tidak diubah di sini, karena stok dikelola per batch."
               : "Barang baru langsung aktif. Stok ditambahkan melalui batch setelah barang dibuat."}
           </DialogDescription>
         </DialogHeader>

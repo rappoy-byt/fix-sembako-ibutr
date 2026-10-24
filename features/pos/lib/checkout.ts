@@ -115,8 +115,8 @@ export function describeCheckoutError(code: CheckoutErrorCode, rawDetails?: stri
       const requested = num(d, "requested");
       const available = num(d, "available");
       return requested !== null && available !== null
-        ? `Stok ${name} tidak cukup: diminta ${formatNumber(requested)}, tersedia ${formatNumber(available)}. Stok sudah diperbarui — sesuaikan jumlah di keranjang.`
-        : `Stok ${name} tidak cukup. Stok sudah diperbarui — sesuaikan jumlah di keranjang.`;
+        ? `Stok ${name} tidak cukup: diminta ${formatNumber(requested)}, tersedia ${formatNumber(available)}. Stok sudah diperbarui. Sesuaikan jumlah di keranjang.`
+        : `Stok ${name} tidak cukup. Stok sudah diperbarui. Sesuaikan jumlah di keranjang.`;
     }
     case "PRODUCT_NOT_FOUND":
       return "Ada barang di keranjang yang sudah tidak ditemukan. Hapus barang tersebut lalu bayar lagi.";
@@ -125,7 +125,7 @@ export function describeCheckoutError(code: CheckoutErrorCode, rawDetails?: stri
     case "PRICE_CHANGED": {
       const actual = num(d, "actual_total");
       return actual !== null
-        ? `Harga barang berubah. Total terbaru ${formatRupiah(actual)} — periksa keranjang lalu bayar lagi.`
+        ? `Harga barang berubah. Total terbaru ${formatRupiah(actual)}. Periksa keranjang lalu bayar lagi.`
         : "Harga barang berubah. Periksa keranjang lalu bayar lagi.";
     }
     case "INSUFFICIENT_PAYMENT": {
@@ -151,7 +151,7 @@ export function describeCheckoutError(code: CheckoutErrorCode, rawDetails?: stri
     case "LOCK_TIMEOUT":
       return "Kasir sedang memproses transaksi lain untuk barang yang sama. Coba lagi sebentar.";
     case "NETWORK":
-      return "Koneksi ke server terputus. Status transaksi belum pasti — tekan Bayar lagi; transaksi tidak akan tercatat dua kali.";
+      return "Koneksi ke server terputus. Status transaksi belum pasti. Tekan Bayar lagi, transaksi tidak akan tercatat dua kali.";
     case "UNKNOWN":
       return "Checkout gagal karena kesalahan tak terduga. Tidak ada perubahan stok. Coba lagi.";
   }

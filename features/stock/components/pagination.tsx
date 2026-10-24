@@ -23,7 +23,7 @@ export function MovementPagination({ filters, today, total, pageCount }: Movemen
   return (
     <nav aria-label="Halaman riwayat stok" className="flex flex-wrap items-center justify-between gap-3">
       <p className="numeric text-xs text-muted-foreground">
-        {formatNumber(first)}–{formatNumber(last)} dari {formatNumber(total)} pergerakan · halaman{" "}
+        {formatNumber(first)}-{formatNumber(last)} dari {formatNumber(total)} pergerakan · halaman{" "}
         {formatNumber(page)} / {formatNumber(pageCount)}
       </p>
       <div className="flex gap-2">

@@ -210,7 +210,7 @@ export function validateBatchDates(input: {
   } else if (expiryDate < incomingDate) {
     errors.expiry_date = "Tanggal kedaluwarsa tidak boleh sebelum tanggal masuk.";
   } else if (expiryDate < today) {
-    errors.expiry_date = "Tanggal kedaluwarsa sudah lewat — batch expired tidak boleh dijual.";
+    errors.expiry_date = "Tanggal kedaluwarsa sudah lewat. Batch expired tidak boleh dijual.";
   }
 
   return errors;

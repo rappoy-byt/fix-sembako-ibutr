@@ -198,7 +198,7 @@ export function InventoryTable({ products, categories, today }: InventoryTablePr
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell>{p.category?.name ?? "—"}</TableCell>
+                  <TableCell>{p.category?.name ?? "-"}</TableCell>
                   <TableCell className="numeric text-right">{formatRupiah(p.purchase_price)}</TableCell>
                   <TableCell className="numeric text-right font-medium">
                     {formatRupiah(p.selling_price)}
@@ -222,7 +222,7 @@ export function InventoryTable({ products, categories, today }: InventoryTablePr
                       {p.stock.nearestSellableExpiry ? (
                         <ExpiryBadge expiryDate={p.stock.nearestSellableExpiry} today={today} />
                       ) : (
-                        p.stock.expiredStock === 0 && <span className="text-xs text-muted-foreground">—</span>
+                        p.stock.expiredStock === 0 && <span className="text-xs text-muted-foreground">-</span>
                       )}
                       <ExpiredStockBadge quantity={p.stock.expiredStock} unit={p.unit} />
                     </div>

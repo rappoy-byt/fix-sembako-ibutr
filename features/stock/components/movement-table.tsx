@@ -47,7 +47,7 @@ function ProductCell({ row }: { row: MovementRow }) {
 }
 
 function BatchCell({ row }: { row: MovementRow }) {
-  if (!row.batch) return <span className="text-muted-foreground">—</span>;
+  if (!row.batch) return <span className="text-muted-foreground">-</span>;
   return (
     <div>
       <p className="font-mono text-xs">{row.batch.batchNumber}</p>
@@ -63,7 +63,7 @@ function ReferenceCell({ row }: { row: MovementRow }) {
   if (row.transactionNumber) return <span className="font-mono text-xs">{row.transactionNumber}</span>;
   if (row.movementType === "IN") return <span className="text-xs text-muted-foreground">Batch masuk</span>;
   if (row.referenceId) return <span className="text-xs text-muted-foreground">Transaksi tidak ditemukan</span>;
-  return <span className="text-muted-foreground">—</span>;
+  return <span className="text-muted-foreground">-</span>;
 }
 
 function QuantityText({ row }: { row: MovementRow }) {

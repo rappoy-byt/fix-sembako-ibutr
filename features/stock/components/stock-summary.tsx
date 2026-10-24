@@ -20,7 +20,7 @@ export function StockSummary({ products, totals, from, to }: StockSummaryProps) 
   const availableUnits = active.reduce((sum, p) => sum + p.stock.availableStock, 0);
   const low = active.filter((p) => p.stock.stockLevel === "low_stock").length;
   const out = active.filter((p) => p.stock.stockLevel === "out_of_stock").length;
-  const period = from === to ? formatDate(from) : `${formatDate(from)} – ${formatDate(to)}`;
+  const period = from === to ? formatDate(from) : `${formatDate(from)} - ${formatDate(to)}`;
 
   return (
     <section aria-label="Ringkasan stok" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -39,13 +39,13 @@ export function StockSummary({ products, totals, from, to }: StockSummaryProps) 
       />
       <StatCard
         label="Stok Masuk"
-        value={totals ? `+${formatNumber(totals.incoming)}` : "—"}
+        value={totals ? `+${formatNumber(totals.incoming)}` : "-"}
         icon={ArrowDownToLine}
         hint={totals ? `Unit tercatat · ${period}` : "Perbaiki filter untuk melihat total"}
       />
       <StatCard
         label="Stok Keluar"
-        value={totals ? `−${formatNumber(totals.outgoing)}` : "—"}
+        value={totals ? `−${formatNumber(totals.outgoing)}` : "-"}
         icon={ArrowUpFromLine}
         hint={totals ? `Unit tercatat · ${period}` : "Perbaiki filter untuk melihat total"}
       />

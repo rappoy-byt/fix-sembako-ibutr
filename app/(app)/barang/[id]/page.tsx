@@ -114,7 +114,7 @@ async function ProductDetailContent({ params }: { params: PageProps<"/barang/[id
           <OctagonAlert aria-hidden className="mt-0.5 size-5 shrink-0 text-danger" />
           <div>
             <p className="font-semibold text-danger">
-              {formatNumber(stock.expiredStock)} {product.unit} stok sudah expired — tidak boleh dijual
+              {formatNumber(stock.expiredStock)} {product.unit} stok sudah expired, tidak boleh dijual
             </p>
             <p className="text-sm text-muted-foreground">
               Batch expired tidak dihitung sebagai stok tersedia dan tidak akan dialokasikan saat
@@ -147,7 +147,7 @@ async function ProductDetailContent({ params }: { params: PageProps<"/barang/[id
         />
         <StatCard
           label="Terdekat Expired"
-          value={stock.nearestSellableExpiry ? formatDate(stock.nearestSellableExpiry) : "—"}
+          value={stock.nearestSellableExpiry ? formatDate(stock.nearestSellableExpiry) : "-"}
           icon={CalendarClock}
           hint={
             stock.nearestSellableExpiry

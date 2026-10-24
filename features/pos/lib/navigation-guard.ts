@@ -89,7 +89,7 @@ export function getLeaveDialogCopy(level: PosGuardLevel, intent: LeaveIntent): L
       return {
         title: "Status transaksi belum pasti",
         description:
-          "Koneksi terputus saat pembayaran terakhir. Tekan Bayar lagi untuk memastikan statusnya — transaksi tidak akan tercatat dua kali. Jika Anda keluar sekarang, status transaksi ini tidak bisa dicek dari kasir.",
+          "Koneksi terputus saat pembayaran terakhir. Tekan Bayar lagi untuk memastikan statusnya. Transaksi tidak akan tercatat dua kali. Jika Anda keluar sekarang, status transaksi ini tidak bisa dicek dari kasir.",
         confirmLabel: null,
       };
   }

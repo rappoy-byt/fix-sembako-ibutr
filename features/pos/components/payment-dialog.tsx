@@ -199,7 +199,7 @@ export function PaymentDialog({
                       change !== null && (change < 0 ? "text-danger" : "text-primary")
                     )}
                   >
-                    {change === null ? "—" : formatRupiah(Math.abs(change))}
+                    {change === null ? "-" : formatRupiah(Math.abs(change))}
                   </span>
                 </div>
               </>

@@ -203,7 +203,7 @@ export async function createStockBatch(
     batch_id: batch.id,
     movement_type: "IN",
     quantity: input.quantity,
-    note: `Barang masuk — batch ${input.batch_number}`,
+    note: `Barang masuk, batch ${input.batch_number}`,
   });
 
   revalidateInventory(input.product_id);

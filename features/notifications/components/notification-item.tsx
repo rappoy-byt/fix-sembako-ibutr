@@ -56,7 +56,7 @@ export function NotificationItem({ notification, variant = "default", action }: 
         </p>
         {isExpired && !compact && (
           <p className="text-xs font-semibold text-danger">
-            Tidak boleh dijual — batch ini tidak dihitung sebagai stok tersedia.
+            Tidak boleh dijual. Batch ini tidak dihitung sebagai stok tersedia.
           </p>
         )}
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
