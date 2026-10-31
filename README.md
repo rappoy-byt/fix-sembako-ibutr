@@ -65,3 +65,6 @@ Tidak ada data contoh di aplikasi.
   notifikasi per batch (dijamin oleh constraint `UNIQUE (batch_id, type)`).
 - **Hampir kedaluwarsa**: kedaluwarsa dalam ≤ 30 hari.
 - **Stok menipis**: stok tersedia ≤ `minimum_stock`. **Habis**: stok tersedia = 0.
+
+
+test noah
