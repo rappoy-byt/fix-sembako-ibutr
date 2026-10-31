@@ -67,4 +67,4 @@ Tidak ada data contoh di aplikasi.
 - **Stok menipis**: stok tersedia ≤ `minimum_stock`. **Habis**: stok tersedia = 0.
 
 
-test noah
+test noahhh
