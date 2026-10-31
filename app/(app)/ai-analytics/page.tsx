@@ -1,6 +1,7 @@
 import React from 'react';
 import SalesTrend from '@/features/analytics/components/SalesTrend';
 import ProductPerformance from '@/features/analytics/components/ProductPerformance';
+import AIRecommendations from '@/features/analytics/components/AIRecommendations';
 
 export default function AIAnalyticsPage() {
   return (
@@ -15,6 +16,9 @@ export default function AIAnalyticsPage() {
       
       {/* Render Modul 2 & 3 */}
       <ProductPerformance />
+      
+      {/* Render Modul 4 */}
+      <AIRecommendations />
     </div>
   );
 }

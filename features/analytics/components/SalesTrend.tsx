@@ -5,10 +5,8 @@ import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer 
 } from 'recharts';
 
-// Tipe data disamakan dengan type.ts dari ketua tim lu
 type Period = '7d' | '30d' | '90d';
 
-// Data dummy untuk masing-masing periode dengan fluktuasi ala grafik trading
 const mockData = {
   '7d': [
     { date: 'Senin', revenue: 1500000, transactions: 45 },
@@ -38,9 +36,8 @@ export default function SalesTrend() {
   
   const totalRevenue = activeData.reduce((sum, item) => sum + item.revenue, 0);
 
-  // Menentukan warna garis (Hijau jika tren naik dari awal ke akhir, Merah jika turun)
   const isUptrend = activeData[activeData.length - 1].revenue >= activeData[0].revenue;
-  const lineColor = isUptrend ? '#10b981' : '#ef4444'; // Emerald-500 (Hijau) atau Red-500
+  const lineColor = isUptrend ? '#10b981' : '#ef4444';
 
   return (
     <div className="p-6 bg-white border rounded-xl shadow-sm">
@@ -62,6 +59,7 @@ export default function SalesTrend() {
           {(['7d', '30d', '90d'] as Period[]).map((p) => (
             <button
               key={p}
+              suppressHydrationWarning
               onClick={() => setPeriod(p)}
               className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all ${
                 period === p 
