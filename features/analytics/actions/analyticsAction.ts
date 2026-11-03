@@ -1,8 +1,8 @@
 'use server';
 
 import { geminiAnalyticsProvider } from '@/features/analytics/provider/geminiProvider';
+import { generateWithFallback } from '@/features/analytics/provider/geminiClient';
 import { AnalyticsInput, AnalyticsReport } from '@/features/analytics/types';
-import { GoogleGenerativeAI } from '@google/generative-ai';
 
 // 1. Action untuk Generate Insight Dashboard Otomatis
 export async function generateAIReportAction(
@@ -13,35 +13,26 @@ export async function generateAIReportAction(
     return { success: true, data: report };
   } catch (error: any) {
     console.error('Error generating AI report:', error);
-    return { 
-      success: false, 
-      error: error.message || 'Gagal mengambil analisis dari AI.' 
+    return {
+      success: false,
+      error: error.message || 'Gagal mengambil analisis dari AI.',
     };
   }
 }
 
 // 2. Action untuk Tanya Jawab Chat AI Interaktif
 export async function askAIChatAction(
-  query: string, 
+  query: string,
   contextData: AnalyticsInput
 ): Promise<{ success: boolean; reply?: string; error?: string }> {
   try {
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) {
-      return { 
-        success: false, 
-        error: 'API Key Gemini belum terkonfigurasi di file .env.local.' 
-      };
-    }
-
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
-
     const prompt = `
 Kamu adalah asisten AI toko sembako pintar untuk Toko Sembako Ibu TR.
 Berikut data kondisi toko saat ini:
-- Ringkasan Penjualan Harian: ${JSON.stringify(contextData.dailySales)}
-- Performa & Stok Produk: ${JSON.stringify(contextData.productSales)}
+- Ringkasan Penjualan Harian: 
+${JSON.stringify(contextData.dailySales)}
+- Performa & Stok Produk: 
+${JSON.stringify(contextData.productSales)}
 
 Pertanyaan Pemilik Toko: "${query}"
 
@@ -52,15 +43,13 @@ Instruksi Respons:
 4. Hindari penggunaan format markdown tebal (bold/asterisk **) berlebihan.
 `;
 
-    const result = await model.generateContent(prompt);
-    const responseText = result.response.text().trim();
-
+    const responseText = (await generateWithFallback(prompt)).trim();
     return { success: true, reply: responseText };
   } catch (error: any) {
     console.error('Error in AI Chat Action:', error);
-    return { 
-      success: false, 
-      error: error.message || 'Gagal memproses pertanyaan ke Gemini.' 
+    return {
+      success: false,
+      error: error.message || 'Gagal memproses pertanyaan ke Gemini.',
     };
   }
 }
