@@ -15,18 +15,24 @@ export const DEFAULT_RANGE_DAYS = 30;
 /** Rentang maksimum yang boleh dipilih (inklusif). */
 export const MAX_RANGE_DAYS = 366;
 
-/** Pilihan tipe yang tampil di UI. Enum lain belum punya alur data di aplikasi. */
-export type MovementTypeFilter = "all" | "in" | "sale";
+/** Pilihan tipe yang tampil di UI. ADJUSTMENT_IN belum punya alur data di aplikasi. */
+export type MovementTypeFilter = "all" | "in" | "sale" | "expired" | "damage" | "adjustment";
 
 export const MOVEMENT_TYPE_FILTER_MAP: Record<Exclude<MovementTypeFilter, "all">, StockMovementType> = {
   in: "IN",
   sale: "SALE",
+  expired: "EXPIRED",
+  damage: "DAMAGE",
+  adjustment: "ADJUSTMENT_OUT",
 };
 
 export const MOVEMENT_TYPE_FILTER_OPTIONS: { value: MovementTypeFilter; label: string }[] = [
-  { value: "all", label: "Semua tipe" },
+  { value: "all", label: "Semua" },
   { value: "in", label: "Masuk" },
   { value: "sale", label: "Penjualan" },
+  { value: "expired", label: "Kedaluwarsa" },
+  { value: "damage", label: "Rusak" },
+  { value: "adjustment", label: "Koreksi" },
 ];
 
 export interface MovementFilters {
@@ -84,7 +90,7 @@ export function parseMovementFilters(params: SearchParams, today: string): Parse
 
   const typeRaw = single(params, "type") ?? "all";
   let type: MovementTypeFilter = "all";
-  if (typeRaw === "all" || typeRaw === "in" || typeRaw === "sale") type = typeRaw;
+  if (MOVEMENT_TYPE_FILTER_OPTIONS.some((o) => o.value === typeRaw)) type = typeRaw as MovementTypeFilter;
   else errors.push("Tipe pergerakan tidak valid.");
 
   const fromRaw = single(params, "from");

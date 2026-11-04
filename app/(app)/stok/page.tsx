@@ -7,7 +7,6 @@ import { Suspense } from "react";
 import { EmptyState } from "@/components/shared/empty-state";
 import { ErrorState } from "@/components/shared/error-state";
 import { PageHeader } from "@/components/shared/page-header";
-import { StatCardSkeleton } from "@/components/shared/stat-card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getStoreToday } from "@/features/inventory/lib/business-rules";
@@ -30,7 +29,7 @@ export default function StokPage(props: PageProps<"/stok">) {
     <div className="space-y-6">
       <PageHeader
         title="Stok"
-        description="Ringkasan stok dan riwayat pergerakan yang tercatat (barang masuk & penjualan). Tanggal bisnis WIB."
+        description="Catatan barang masuk dan keluar di warungmu."
       />
       <Suspense fallback={<StokSkeleton />}>
         <StokContent searchParams={props.searchParams} />
@@ -78,16 +77,10 @@ async function StokContent({ searchParams }: { searchParams: PageProps<"/stok">[
         to={filters.to}
       />
 
-      <section aria-labelledby="history-heading" className="space-y-3">
-        <div>
-          <h2 id="history-heading" className="font-heading text-lg font-semibold">
-            Riwayat Pergerakan
-          </h2>
-          <p className="text-sm text-muted-foreground">
-            Hanya pergerakan yang tercatat di sistem. Batch yang kedaluwarsa tidak dicatat sebagai
-            stok keluar.
-          </p>
-        </div>
+      <section aria-labelledby="history-heading" className="space-y-5 rounded-2xl border bg-card px-5 py-5 sm:px-6">
+        <h2 id="history-heading" className="text-base font-semibold">
+          Riwayat stok
+        </h2>
 
         <MovementFilterBar
           key={`${filters.productId ?? ""}|${filters.type}|${filters.from}|${filters.to}`}
@@ -132,7 +125,7 @@ async function StokContent({ searchParams }: { searchParams: PageProps<"/stok">[
             <EmptyState
               icon={History}
               title="Belum ada pergerakan stok"
-              description={`Tidak ada barang masuk atau penjualan dalam ${DEFAULT_RANGE_DAYS} hari terakhir.`}
+              description={`Tidak ada barang masuk atau keluar dalam ${DEFAULT_RANGE_DAYS} hari terakhir.`}
             />
           ) : (
             <EmptyState
@@ -144,7 +137,7 @@ async function StokContent({ searchParams }: { searchParams: PageProps<"/stok">[
           )
         ) : (
           <>
-            <MovementTable rows={movements.data.rows} />
+            <MovementTable rows={movements.data.rows} today={today} />
             <MovementPagination
               filters={filters}
               today={today}
@@ -161,14 +154,16 @@ async function StokContent({ searchParams }: { searchParams: PageProps<"/stok">[
 function StokSkeleton() {
   return (
     <div className="space-y-6" aria-busy="true" aria-label="Memuat data stok">
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {Array.from({ length: 4 }, (_, i) => (
-          <StatCardSkeleton key={i} />
-        ))}
+      <Skeleton className="h-36 w-full rounded-2xl" />
+      <div className="space-y-5 rounded-2xl border bg-card px-5 py-5 sm:px-6">
+        <Skeleton className="h-6 w-32" />
+        <div className="flex gap-2">
+          <Skeleton className="h-10 flex-1" />
+          <Skeleton className="h-10 w-44" />
+        </div>
+        <Skeleton className="h-9 w-96 max-w-full rounded-full" />
+        <Skeleton className="h-80 w-full rounded-xl" />
       </div>
-      <Skeleton className="h-6 w-48" />
-      <Skeleton className="h-16 w-full rounded-xl" />
-      <Skeleton className="h-80 w-full rounded-xl" />
     </div>
   );
 }

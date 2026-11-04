@@ -21,30 +21,29 @@ export function MovementPagination({ filters, today, total, pageCount }: Movemen
   const href = (target: number) => `/stok${buildMovementSearch(filters, today, { page: target })}`;
 
   return (
-    <nav aria-label="Halaman riwayat stok" className="flex flex-wrap items-center justify-between gap-3">
-      <p className="numeric text-xs text-muted-foreground">
-        {formatNumber(first)}-{formatNumber(last)} dari {formatNumber(total)} pergerakan · halaman{" "}
-        {formatNumber(page)} / {formatNumber(pageCount)}
+    <nav aria-label="Halaman riwayat stok" className="flex flex-wrap items-center justify-between gap-3 border-t pt-4">
+      <p className="numeric text-sm text-muted-foreground">
+        {formatNumber(first)}–{formatNumber(last)} dari {formatNumber(total)} catatan
       </p>
       <div className="flex gap-2">
         {page > 1 ? (
-          <Button variant="outline" size="sm" render={<Link href={href(page - 1)} scroll={false} />} nativeButton={false}>
+          <Button variant="outline" className="h-10 px-3.5 text-sm" render={<Link href={href(page - 1)} scroll={false} />} nativeButton={false}>
             <ChevronLeft />
             Sebelumnya
           </Button>
         ) : (
-          <Button variant="outline" size="sm" disabled>
+          <Button variant="outline" className="h-10 px-3.5 text-sm" disabled>
             <ChevronLeft />
             Sebelumnya
           </Button>
         )}
         {page < pageCount ? (
-          <Button variant="outline" size="sm" render={<Link href={href(page + 1)} scroll={false} />} nativeButton={false}>
+          <Button variant="outline" className="h-10 px-3.5 text-sm" render={<Link href={href(page + 1)} scroll={false} />} nativeButton={false}>
             Berikutnya
             <ChevronRight />
           </Button>
         ) : (
-          <Button variant="outline" size="sm" disabled>
+          <Button variant="outline" className="h-10 px-3.5 text-sm" disabled>
             Berikutnya
             <ChevronRight />
           </Button>

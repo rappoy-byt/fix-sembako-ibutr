@@ -44,7 +44,7 @@ export function AppSidebar({ unreadCount }: AppSidebarProps) {
   return (
     <aside className="sticky top-0 flex h-svh w-16 shrink-0 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground lg:w-64">
       <div className="hidden shrink-0 px-5 pt-5 pb-4 lg:block">
-        <p className="truncate leading-tight font-semibold tracking-wide text-foreground">SEMBAKO IBU TR</p>
+        <p className="truncate leading-tight font-semibold tracking-wide text-foreground">SEMBAKOIN</p>
       </div>
 
       <div className="mx-4 hidden items-center gap-3 rounded-xl border border-sidebar-border px-3 py-2.5 lg:flex">

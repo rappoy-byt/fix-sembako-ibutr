@@ -6,7 +6,7 @@ import { getCurrentOwner } from "@/features/auth/queries";
 import { describeDbError, PG_ERROR } from "@/lib/supabase/helpers";
 import { createClient } from "@/lib/supabase/server";
 
-import { getStoreToday } from "./lib/business-rules";
+import { getStoreToday, isBatchExpiredWithStock, planFefoAllocation } from "./lib/business-rules";
 import {
   isUuid,
   parseBatchForm,
@@ -222,5 +222,160 @@ export async function createStockBatch(
     ok: true,
     message: `Batch ${input.batch_number} (${input.quantity} unit) ditambahkan ke ${product.name}.`,
     id: batch.id,
+  };
+}
+
+// ---------------------------------------------------------------- Stok keluar
+
+export type StockOutReason = "EXPIRED" | "DAMAGE" | "ADJUSTMENT_OUT";
+
+const STOCK_OUT_LABEL: Record<StockOutReason, string> = {
+  EXPIRED: "kedaluwarsa",
+  DAMAGE: "rusak",
+  ADJUSTMENT_OUT: "koreksi",
+};
+
+export interface StockOutInput {
+  productId: string;
+  reason: StockOutReason;
+  /** Diabaikan untuk EXPIRED: semua stok kedaluwarsa dikeluarkan. */
+  quantity: number;
+  note: string;
+}
+
+/**
+ * Mengeluarkan stok di luar penjualan + mencatat stock movement keluar (kuantitas negatif).
+ * - EXPIRED: seluruh sisa batch yang sudah kedaluwarsa.
+ * - DAMAGE / ADJUSTMENT_OUT: `quantity` unit dari batch layak jual, urutan FEFO.
+ *
+ * Catatan atomisitas sama seperti createStockBatch: tanpa fungsi database, update batch
+ * dan insert movement tidak bisa satu transaksi. Update batch dijaga dengan nilai sisa
+ * lama, sehingga jika kasir mengubah batch yang sama di tengah proses, update berhenti.
+ */
+export async function removeStock(input: StockOutInput): Promise<ActionResult> {
+  if (!(await getCurrentOwner())) return { ok: false, message: SESSION_EXPIRED };
+  if (!isUuid(input.productId)) return { ok: false, message: "Barang tidak valid." };
+  if (!(input.reason in STOCK_OUT_LABEL)) return { ok: false, message: "Alasan tidak valid." };
+
+  const note = input.note.trim();
+  if (note.length > 200) return { ok: false, message: "Catatan maksimal 200 karakter." };
+
+  const isExpiredRemoval = input.reason === "EXPIRED";
+  if (!isExpiredRemoval && (!Number.isInteger(input.quantity) || input.quantity <= 0)) {
+    return { ok: false, message: "Jumlah harus bilangan bulat lebih dari 0." };
+  }
+
+  const supabase = await createClient();
+  const today = getStoreToday();
+
+  const [productResult, batchesResult] = await Promise.all([
+    supabase.from("products").select("id, name, unit").eq("id", input.productId).maybeSingle(),
+    supabase
+      .from("stock_batches")
+      .select("id, batch_number, remaining_quantity, expiry_date, status, incoming_date, created_at")
+      .eq("product_id", input.productId)
+      .gt("remaining_quantity", 0),
+  ]);
+
+  if (productResult.error) return { ok: false, message: describeDbError(productResult.error, "Gagal memuat barang") };
+  if (!productResult.data) return { ok: false, message: "Barang tidak ditemukan." };
+  if (batchesResult.error) {
+    return { ok: false, message: describeDbError(batchesResult.error, "Gagal memuat stok batch") };
+  }
+
+  const product = productResult.data;
+  const batches = batchesResult.data;
+  const batchById = new Map(batches.map((b) => [b.id, b]));
+
+  let allocations: { batchId: string; quantity: number }[];
+  if (isExpiredRemoval) {
+    allocations = batches
+      .filter((b) => isBatchExpiredWithStock(b, today))
+      .map((b) => ({ batchId: b.id, quantity: b.remaining_quantity }));
+    if (allocations.length === 0) {
+      return { ok: false, message: `Tidak ada stok kedaluwarsa pada ${product.name}.` };
+    }
+  } else {
+    const plan = planFefoAllocation(batches, input.quantity, today);
+    if (plan.shortfall > 0) {
+      const available = input.quantity - plan.shortfall;
+      return {
+        ok: false,
+        message: `Stok layak jual ${product.name} hanya ${available} ${product.unit}.`,
+      };
+    }
+    allocations = plan.allocations;
+  }
+
+  const done: { batchId: string; quantity: number; batchNumber: string }[] = [];
+  let conflict = false;
+  for (const allocation of allocations) {
+    const batch = batchById.get(allocation.batchId);
+    if (!batch) continue;
+    const remaining = batch.remaining_quantity - allocation.quantity;
+
+    const { data, error } = await supabase
+      .from("stock_batches")
+      .update({ remaining_quantity: remaining, ...(remaining === 0 && { status: "DEPLETED" as const }) })
+      .eq("id", batch.id)
+      .eq("remaining_quantity", batch.remaining_quantity)
+      .select("id");
+
+    if (error) {
+      if (done.length === 0) return { ok: false, message: describeDbError(error, "Gagal mengurangi stok batch") };
+      conflict = true;
+      break;
+    }
+    if (data.length === 0) {
+      conflict = true;
+      break;
+    }
+    done.push({ ...allocation, batchNumber: batch.batch_number });
+  }
+
+  if (done.length === 0) {
+    return {
+      ok: false,
+      message: "Stok barang ini baru saja berubah (mungkin ada penjualan). Muat ulang halaman lalu coba lagi.",
+    };
+  }
+
+  const label = STOCK_OUT_LABEL[input.reason];
+  const { error: movementError } = await supabase.from("stock_movements").insert(
+    done.map((d) => ({
+      product_id: product.id,
+      batch_id: d.batchId,
+      movement_type: input.reason,
+      quantity: -d.quantity,
+      note: `Dikeluarkan (${label}), batch ${d.batchNumber}${note ? `: ${note}` : ""}`,
+    }))
+  );
+
+  revalidateInventory(product.id);
+  revalidatePath("/stok");
+
+  const total = done.reduce((sum, d) => sum + d.quantity, 0);
+  if (movementError) {
+    const detail = describeDbError(movementError, "Pencatatan stock movement gagal");
+    return {
+      ok: false,
+      message:
+        `${total} ${product.unit} ${product.name} SUDAH dikeluarkan dari stok, tetapi riwayat ` +
+        `pergerakan stok (stock movement) gagal dicatat. ${detail}`,
+    };
+  }
+  if (conflict) {
+    return {
+      ok: false,
+      message:
+        `Baru ${total} ${product.unit} yang dikeluarkan karena stok berubah di tengah proses ` +
+        `(mungkin ada penjualan). Periksa sisa stok lalu ulangi untuk sisanya.`,
+    };
+  }
+
+  return {
+    ok: true,
+    message: `${total} ${product.unit} ${product.name} dikeluarkan (${label}).`,
+    id: product.id,
   };
 }

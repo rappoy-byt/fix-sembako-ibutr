@@ -1,8 +1,8 @@
-import { ArrowDownToLine, ArrowUpFromLine, Boxes, PackageMinus } from "lucide-react";
+import { ArrowDownLeft, ArrowUpRight, Package, TrendingDown, type LucideIcon } from "lucide-react";
 
-import { StatCard } from "@/components/shared/stat-card";
 import type { InventoryProduct } from "@/features/inventory/queries";
 import { formatDate, formatNumber } from "@/lib/format";
+import { cn } from "@/lib/utils";
 
 import type { MovementTotals } from "../lib/movements";
 
@@ -18,37 +18,44 @@ interface StockSummaryProps {
 export function StockSummary({ products, totals, from, to }: StockSummaryProps) {
   const active = products.filter((p) => p.is_active);
   const availableUnits = active.reduce((sum, p) => sum + p.stock.availableStock, 0);
-  const low = active.filter((p) => p.stock.stockLevel === "low_stock").length;
-  const out = active.filter((p) => p.stock.stockLevel === "out_of_stock").length;
-  const period = from === to ? formatDate(from) : `${formatDate(from)} - ${formatDate(to)}`;
+  const needRestock = active.filter((p) => p.stock.stockLevel !== "in_stock").length;
+  const period = from === to ? formatDate(from) : `${formatDate(from)} – ${formatDate(to)}`;
 
   return (
-    <section aria-label="Ringkasan stok" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-      <StatCard
-        label="Stok Tersedia"
-        value={formatNumber(availableUnits)}
-        icon={Boxes}
-        hint={`Unit layak jual dari ${formatNumber(active.length)} barang aktif`}
-      />
-      <StatCard
-        label="Menipis / Habis"
-        value={`${formatNumber(low)} / ${formatNumber(out)}`}
-        icon={PackageMinus}
-        hint="Barang aktif ≤ stok minimum / tanpa stok"
-        tone={low + out > 0 ? "warning" : "neutral"}
-      />
-      <StatCard
-        label="Stok Masuk"
-        value={totals ? `+${formatNumber(totals.incoming)}` : "-"}
-        icon={ArrowDownToLine}
-        hint={totals ? `Unit tercatat · ${period}` : "Perbaiki filter untuk melihat total"}
-      />
-      <StatCard
-        label="Stok Keluar"
-        value={totals ? `−${formatNumber(totals.outgoing)}` : "-"}
-        icon={ArrowUpFromLine}
-        hint={totals ? `Unit tercatat · ${period}` : "Perbaiki filter untuk melihat total"}
-      />
+    <section aria-label="Ringkasan stok" className="rounded-2xl border bg-card px-5 py-5 sm:px-6">
+      <div className="grid grid-cols-2 gap-y-5 lg:grid-cols-4">
+        <SummaryTile icon={Package} label="Stok layak jual" value={formatNumber(availableUnits)} />
+        <SummaryTile icon={TrendingDown} label="Perlu diisi" value={formatNumber(needRestock)} />
+        <SummaryTile
+          icon={ArrowDownLeft}
+          label="Masuk"
+          value={totals ? `+${formatNumber(totals.incoming)}` : "-"}
+          className={totals ? "text-success" : undefined}
+        />
+        <SummaryTile icon={ArrowUpRight} label="Keluar" value={totals ? `−${formatNumber(totals.outgoing)}` : "-"} />
+      </div>
+      <p className="mt-5 border-t pt-4 text-sm text-muted-foreground">
+        {totals ? `Masuk dan keluar dihitung ${period}` : "Perbaiki filter untuk melihat total masuk dan keluar"}
+      </p>
     </section>
+  );
+}
+
+interface SummaryTileProps {
+  icon: LucideIcon;
+  label: string;
+  value: string;
+  className?: string;
+}
+
+function SummaryTile({ icon: Icon, label, value, className }: SummaryTileProps) {
+  return (
+    <div className="border-l px-5 first:border-l-0 first:pl-0 odd:max-lg:border-l-0 odd:max-lg:pl-0">
+      <p className="flex items-center gap-2 text-sm text-muted-foreground">
+        <Icon aria-hidden className="size-4" />
+        {label}
+      </p>
+      <p className={cn("numeric mt-3 text-3xl leading-none font-semibold tracking-tight", className)}>{value}</p>
+    </div>
   );
 }
