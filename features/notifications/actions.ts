@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 
 import { getCurrentOwner } from "@/features/auth/queries";
 import { getStoreToday } from "@/features/inventory/lib/business-rules";
+import { sendPendingTelegramAlerts } from "@/features/monitoring/telegram-alerts";
 import { formatDate, formatNumber } from "@/lib/format";
 import { chunk, describeDbError, fetchAllRows, PG_ERROR } from "@/lib/supabase/helpers";
 import { createClient } from "@/lib/supabase/server";
@@ -99,6 +100,13 @@ export async function syncInventoryNotifications(): Promise<SyncInventoryResult>
     nearExpiryCreated: nearExpiry.created,
     lowStockCreated: lowStock.created,
   };
+
+  // BARU: kirim peringatan baru ke Telegram. Gagal kirim tidak boleh menggagalkan sinkronisasi.
+  try {
+    await sendPendingTelegramAlerts(supabase);
+  } catch (error) {
+    console.error("[Telegram] Gagal mengirim peringatan:", error);
+  }
 
   if (
     counts.statusUpdated > 0 ||

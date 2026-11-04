@@ -330,6 +330,7 @@ export type Database = {
           batch_id: string | null;
           is_read: boolean;
           created_at: string;
+          telegram_sent_at: string | null;
         };
         Insert: {
           id?: string;
@@ -340,6 +341,7 @@ export type Database = {
           batch_id?: string | null;
           is_read?: boolean;
           created_at?: string;
+          telegram_sent_at?: string | null;
         };
         Update: {
           id?: string;
@@ -350,6 +352,7 @@ export type Database = {
           batch_id?: string | null;
           is_read?: boolean;
           created_at?: string;
+          telegram_sent_at?: string | null;
         };
         Relationships: [
           {
