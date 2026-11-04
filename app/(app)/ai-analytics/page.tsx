@@ -1,7 +1,5 @@
 import React from 'react';
-import SalesTrend from '@/features/analytics/components/SalesTrend';
-import ProductPerformance from '@/features/analytics/components/ProductPerformance';
-import AIRecommendations from '@/features/analytics/components/AIRecommendations';
+import AnalyticsDashboard from '@/features/analytics/components/AnalyticsDashboard';
 
 export default function AIAnalyticsPage() {
   return (
@@ -11,14 +9,7 @@ export default function AIAnalyticsPage() {
         <p className="text-gray-500">Analisis tren dan performa toko sembako Anda.</p>
       </div>
 
-      {/* Render Modul 1 */}
-      <SalesTrend />
-      
-      {/* Render Modul 2 & 3 */}
-      <ProductPerformance />
-      
-      {/* Render Modul 4 */}
-      <AIRecommendations />
+      <AnalyticsDashboard />
     </div>
   );
 }
