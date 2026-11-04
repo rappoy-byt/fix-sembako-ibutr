@@ -1,6 +1,7 @@
 import {
   Bell,
   LayoutDashboard,
+  NotebookPen,
   Package,
   ShoppingCart,
   Sparkles,
@@ -49,6 +50,13 @@ export const NAV_ITEMS: NavItem[] = [
     section: "Inventaris",
     icon: Warehouse,
     description: "Batch stok, barang masuk, dan FEFO",
+  },
+  {
+    title: "Catat Offline",
+    href: "/catat-offline",
+    section: "Inventaris",
+    icon: NotebookPen,
+    description: "Penjualan yang lupa dicatat di kasir",
   },
   {
     title: "Notifikasi",
