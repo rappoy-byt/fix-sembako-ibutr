@@ -25,6 +25,12 @@ export interface AppNotification {
   batchId: string | null;
   createdAt: string;
   isRead: boolean;
+  /** Rincian terkini untuk kalimat ringkas di /notifikasi; null bila tidak relevan/tidak ada. */
+  unit: string | null;
+  expiryDate: string | null;
+  remainingQuantity: number | null;
+  minimumStock: number | null;
+  availableStock: number | null;
 }
 
 /** Hasil query yang bisa gagal; error berupa pesan siap tampil. */

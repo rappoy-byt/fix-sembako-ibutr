@@ -25,7 +25,7 @@ export interface NotificationFeed {
 
 // Harus satu string literal agar supabase-js bisa menurunkan tipe baris dari select.
 const FEED_SELECT =
-  "id, type, title, message, product_id, batch_id, is_read, created_at, product:products(name, minimum_stock, is_active), batch:stock_batches(expiry_date, remaining_quantity, status)";
+  "id, type, title, message, product_id, batch_id, is_read, created_at, product:products(name, unit, minimum_stock, is_active), batch:stock_batches(expiry_date, remaining_quantity, status)";
 
 /**
  * Notifikasi dari tabel `notifications` (READ-ONLY). Di-cache per request karena
@@ -132,6 +132,11 @@ export const getNotifications = cache(async (): Promise<QueryResult<Notification
     batchId: row.batch_id,
     createdAt: row.created_at,
     isRead: row.is_read,
+    unit: row.product?.unit ?? null,
+    expiryDate: row.batch?.expiry_date ?? null,
+    remainingQuantity: row.batch?.remaining_quantity ?? null,
+    minimumStock: row.product?.minimum_stock ?? null,
+    availableStock: row.product_id ? (availableByProduct.get(row.product_id) ?? null) : null,
   }));
 
   return {

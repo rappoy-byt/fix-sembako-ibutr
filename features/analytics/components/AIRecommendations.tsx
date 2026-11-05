@@ -1,5 +1,6 @@
 'use client';
 
+import { Sparkles } from 'lucide-react';
 import React, { useState } from 'react';
 import { generateAIReportAction, askAIChatAction } from '@/features/analytics/actions/analyticsAction';
 import { AnalyticsInput, AnalyticsReport } from '@/features/analytics/types';
@@ -81,7 +82,7 @@ export default function AIRecommendations({ analyticsInput, isLoadingData }: AIR
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
             <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
           </span>
-          <h2 className="text-lg font-bold text-gray-800">Asisten AI Gemini</h2>
+          <h2 className="text-lg font-bold text-gray-800">Asisten AI</h2>
         </div>
         <button
           suppressHydrationWarning
@@ -98,7 +99,7 @@ export default function AIRecommendations({ analyticsInput, isLoadingData }: AIR
               <span>Menganalisis...</span>
             </>
           ) : (
-            <span>✨ Generate Analisis AI</span>
+            <span>Generate Analisis AI</span>
           )}
         </button>
       </div>
@@ -110,34 +111,42 @@ export default function AIRecommendations({ analyticsInput, isLoadingData }: AIR
       )}
 
       {/* Card Ringkasan Narasi AI */}
-      <div className="p-6 bg-slate-900 rounded-xl shadow-sm text-white relative overflow-hidden">
-        <div className="flex items-center justify-between mb-3">
-          <span className="text-xs font-semibold tracking-wider text-emerald-400 uppercase bg-slate-800 px-2.5 py-1 rounded-md border border-slate-700">
-            Dianalisis oleh Gemini AI
-          </span>
-          {aiReport && (
-            <span className="text-xs text-slate-400">
-              Diperbarui:{' '}
-              {new Date(aiReport.generatedAt).toLocaleTimeString('id-ID', {
-                hour: '2-digit',
-                minute: '2-digit',
-              })}
-            </span>
-          )}
-        </div>
-
+      <div className="rounded-2xl border bg-card px-5 py-5 sm:px-6">
         {isGenerating ? (
-          <div className="py-6 space-y-2 animate-pulse">
-            <div className="h-4 bg-slate-800 rounded w-5/6"></div>
-            <div className="h-4 bg-slate-800 rounded w-4/6"></div>
+          <div className="space-y-2.5 py-2 animate-pulse">
+            <div className="h-4 w-40 rounded bg-muted"></div>
+            <div className="h-4 w-5/6 rounded bg-muted"></div>
+            <div className="h-4 w-4/6 rounded bg-muted"></div>
           </div>
         ) : aiReport ? (
-          <p className="text-slate-200 leading-relaxed text-sm md:text-base">“{aiReport.summary}”</p>
+          <>
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <p className="flex items-center gap-2 text-sm font-semibold text-primary">
+                <Sparkles aria-hidden className="size-4" />
+                Ringkasan dari AI
+              </p>
+              <span className="text-xs text-muted-foreground">
+                Diperbarui{' '}
+                {new Date(aiReport.generatedAt).toLocaleTimeString('id-ID', {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })}
+              </span>
+            </div>
+            <p className="text-base leading-relaxed text-foreground">{aiReport.summary}</p>
+          </>
         ) : (
-          <p className="text-slate-400 leading-relaxed text-sm md:text-base">
-            Belum ada analisis. Klik “Generate Analisis AI” untuk membuat ringkasan dan rekomendasi
-            dari data penjualan pada periode yang dipilih.
-          </p>
+          <div className="flex items-center gap-4">
+            <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-muted text-muted-foreground">
+              <Sparkles aria-hidden className="size-5" />
+            </span>
+            <div>
+              <p className="text-base font-semibold">Belum ada analisis</p>
+              <p className="mt-0.5 text-sm text-muted-foreground">
+                Klik Generate Analisis AI untuk ringkasan dan saran dari penjualan periode ini.
+              </p>
+            </div>
+          </div>
         )}
       </div>
 
@@ -197,8 +206,7 @@ export default function AIRecommendations({ analyticsInput, isLoadingData }: AIR
 
       {/* MODUL INTERAKTIF CHAT AI */}
       <div className="bg-white border rounded-xl p-6 shadow-sm">
-        <div className="flex items-center gap-2 mb-4">
-          <span className="text-lg">💬</span>
+        <div className="mb-4">
           <div>
             <h3 className="font-bold text-gray-800 text-base">Tanya Asisten AI Toko</h3>
             <p className="text-xs text-gray-500">Penasaran dengan performa barang lain? Tanyakan langsung di sini.</p>
@@ -221,8 +229,12 @@ export default function AIRecommendations({ analyticsInput, isLoadingData }: AIR
         </div>
 
         {/* Bubble Chat History */}
-        {chatHistory.length > 0 && (
-          <div className="mb-4 space-y-3 max-h-60 overflow-y-auto p-3 bg-gray-50 rounded-lg border border-gray-100">
+        <div className="mb-4 space-y-3 min-h-72 max-h-[28rem] overflow-y-auto p-4 bg-gray-50 rounded-lg border border-gray-100">
+            {chatHistory.length === 0 && !isChatLoading && (
+              <p className="flex min-h-64 items-center justify-center text-center text-sm text-gray-400">
+                Belum ada percakapan. Pilih pertanyaan di atas atau ketik sendiri di bawah.
+              </p>
+            )}
             {chatHistory.map((msg, idx) => (
               <div key={idx} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
                 <div
@@ -244,7 +256,6 @@ export default function AIRecommendations({ analyticsInput, isLoadingData }: AIR
               </div>
             )}
           </div>
-        )}
 
         {/* Input Form */}
         <form

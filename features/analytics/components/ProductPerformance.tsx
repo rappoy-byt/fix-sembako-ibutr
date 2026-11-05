@@ -40,7 +40,7 @@ export default function ProductPerformance({ productSales, isLoading }: ProductP
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
       <div className="p-6 bg-white border rounded-xl shadow-sm">
-        <h2 className="text-lg font-bold text-gray-800 mb-4">✨ Produk Terlaris</h2>
+        <h2 className="text-lg font-bold text-gray-800 mb-4">Produk Terlaris</h2>
         {isLoading ? (
           <SkeletonList />
         ) : bestSellers.length === 0 ? (
@@ -73,7 +73,7 @@ export default function ProductPerformance({ productSales, isLoading }: ProductP
       </div>
 
       <div className="p-6 bg-white border rounded-xl shadow-sm">
-        <h2 className="text-lg font-bold text-gray-800 mb-4">⚠️ Produk Lambat Laku</h2>
+        <h2 className="text-lg font-bold text-gray-800 mb-4">Produk Lambat Laku</h2>
         {isLoading ? (
           <SkeletonList />
         ) : slowMovers.length === 0 ? (

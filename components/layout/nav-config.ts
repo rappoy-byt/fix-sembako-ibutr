@@ -1,11 +1,11 @@
 import {
   Bell,
+  History,
   LayoutDashboard,
   NotebookPen,
   Package,
   ShoppingCart,
   Sparkles,
-  Warehouse,
   type LucideIcon,
 } from "lucide-react";
 
@@ -45,11 +45,11 @@ export const NAV_ITEMS: NavItem[] = [
     description: "Data produk dan kategori",
   },
   {
-    title: "Stok",
+    title: "Riwayat",
     href: "/stok",
     section: "Inventaris",
-    icon: Warehouse,
-    description: "Batch stok, barang masuk, dan FEFO",
+    icon: History,
+    description: "Riwayat keluar-masuk stok",
   },
   {
     title: "Catat Offline",
@@ -71,7 +71,6 @@ export const NAV_ITEMS: NavItem[] = [
     section: "Lainnya",
     icon: Sparkles,
     description: "Analisis tren dan rekomendasi restock",
-    comingSoon: true,
   },
 ];
 

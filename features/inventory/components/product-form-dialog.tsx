@@ -20,6 +20,7 @@ import type { Category, Product } from "@/types/domain";
 
 import { createProduct, updateProduct } from "../actions";
 import type { FieldErrors, ProductField } from "../lib/validation";
+import { ProductPhotoField } from "./product-photo-field";
 
 const UNIT_SUGGESTIONS = ["pcs", "bungkus", "botol", "kotak", "dus", "kg", "liter", "karung", "sachet", "kaleng"];
 
@@ -37,17 +38,21 @@ export function ProductFormDialog({ open, onOpenChange, categories, product, onS
   const [isPending, startTransition] = useTransition();
   const [errors, setErrors] = useState<FieldErrors<ProductField>>({});
   const [categoryId, setCategoryId] = useState<string | null>(product?.category_id ?? null);
+  const [imageUrl, setImageUrl] = useState(product?.image_url ?? "");
+  const [isUploading, setIsUploading] = useState(false);
 
   // Kategori nonaktif tidak ditawarkan, kecuali sedang dipakai barang yang diedit.
   const options = categories.filter((c) => c.is_active || c.id === product?.category_id);
   const items = options.map((c) => ({ value: c.id, label: c.name }));
 
   function handleOpenChange(next: boolean) {
-    if (isPending) return;
+    if (isPending || isUploading) return;
     if (next) {
       setErrors({});
       setCategoryId(product?.category_id ?? null);
     }
+    // Form tambah barang dipakai ulang: foto dikosongkan agar tidak terbawa ke barang berikutnya.
+    if (!next && !isEdit) setImageUrl("");
     onOpenChange(next);
   }
 
@@ -63,6 +68,7 @@ export function ProductFormDialog({ open, onOpenChange, categories, product, onS
       }
       setErrors({});
       toast.success(result.message);
+      if (!isEdit) setImageUrl("");
       onOpenChange(false);
       onSaved?.(result.id);
     });
@@ -91,6 +97,13 @@ export function ProductFormDialog({ open, onOpenChange, categories, product, onS
         </DialogHeader>
 
         <form id="product-form" onSubmit={handleSubmit} noValidate className="grid gap-4 sm:grid-cols-2">
+          <ProductPhotoField
+            value={imageUrl}
+            onChange={setImageUrl}
+            onUploadingChange={setIsUploading}
+            error={errors.image_url}
+            disabled={isPending}
+          />
           <FormField id="product-name" label="Nama barang" required error={errors.name} className="sm:col-span-2">
             <Input {...fieldProps("name")} defaultValue={product?.name} maxLength={120} autoFocus className="h-9" />
           </FormField>
@@ -186,30 +199,13 @@ export function ProductFormDialog({ open, onOpenChange, categories, product, onS
               className="numeric h-9"
             />
           </FormField>
-
-          <FormField
-            id="product-image_url"
-            label="URL gambar"
-            error={errors.image_url}
-            hint="Tautan gambar produk (https://…)."
-            className="sm:col-span-2"
-          >
-            <Input
-              {...fieldProps("image_url")}
-              type="url"
-              inputMode="url"
-              defaultValue={product?.image_url ?? ""}
-              placeholder="https://"
-              className="h-9"
-            />
-          </FormField>
         </form>
 
         <DialogFooter>
           <Button variant="outline" onClick={() => handleOpenChange(false)} disabled={isPending}>
             Batal
           </Button>
-          <Button type="submit" form="product-form" disabled={isPending}>
+          <Button type="submit" form="product-form" disabled={isPending || isUploading}>
             {isPending ? <Loader2 className="animate-spin" /> : <Save />}
             {isPending ? "Menyimpan…" : isEdit ? "Simpan Perubahan" : "Simpan Barang"}
           </Button>
