@@ -1,4 +1,3 @@
-import { ShieldCheck } from "lucide-react";
 import type { Metadata } from "next";
 
 import { LoginForm } from "@/features/auth/components/login-form";
@@ -19,11 +18,6 @@ export default function LoginPage() {
           </div>
 
           <LoginForm />
-
-          <p className="mt-8 flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
-            <ShieldCheck aria-hidden className="size-3.5" />
-            Akun dibuat dan dikelola oleh pemilik toko.
-          </p>
         </div>
       </div>
     </section>
