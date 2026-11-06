@@ -26,7 +26,7 @@ export function AppHeader({ ownerEmail, notifications }: AppHeaderProps) {
   return (
     <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-4 border-b bg-background/95 px-4 backdrop-blur supports-backdrop-filter:bg-background/80 lg:px-6">
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-semibold">{current?.title ?? "Warung Sembako Ibu TR"}</p>
+        <p className="truncate text-sm font-semibold">{current?.title ?? "TR Warung"}</p>
         {current && (
           <p className="hidden truncate text-xs text-muted-foreground sm:block">{current.description}</p>
         )}

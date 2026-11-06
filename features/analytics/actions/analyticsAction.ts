@@ -83,7 +83,7 @@ export async function askAIChatAction(
   try {
     const context = trimForAI(contextData);
     const prompt = `
-Kamu adalah asisten AI toko sembako pintar untuk Toko Sembako Ibu TR.
+Kamu adalah asisten AI toko sembako pintar untuk TR Warung.
 Berikut data kondisi toko saat ini:
 - Ringkasan Penjualan Harian: 
 ${JSON.stringify(context.dailySales)}

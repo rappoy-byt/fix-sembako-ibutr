@@ -71,7 +71,7 @@ export async function sendPendingTelegramAlerts(supabase: Supabase): Promise<num
       `${TYPE_ICON[n.type]} <b>${escapeHtml(n.title)}</b>\n${escapeHtml(truncate(n.message, MAX_BODY_LENGTH))}`
   );
   const text =
-    `<b>🔔 Peringatan Inventaris</b>\nToko Sembako Ibu TR\n\n` +
+    `<b>🔔 Peringatan Inventaris</b>\nTR Warung\n\n` +
     items.join("\n\n") +
     `\n\nBuka aplikasi untuk detail dan tindakan.`;
 
