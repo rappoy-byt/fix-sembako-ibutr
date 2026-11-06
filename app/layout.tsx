@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     default: APP_NAME,
     template: `%s · ${APP_NAME}`,
   },
-  description: "Aplikasi kasir dan manajemen stok TR Warung.",
+  description: "Aplikasi kasir dan manajemen stok SEMBAKOTR.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

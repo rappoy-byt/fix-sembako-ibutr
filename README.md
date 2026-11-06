@@ -1,4 +1,4 @@
-SEMBAKOIN
+SEMBAKOTR
 
 Website (Hosting) : https://www.trwarung.my.id
 GitHub            : https://github.com/rappoy-byt/fix-sembako-ibutr
