@@ -35,11 +35,30 @@ function trimForAI(input: AnalyticsInput): AnalyticsInput {
   return { dailySales: input.dailySales, productSales: [...top, ...slow] };
 }
 
+// Helper untuk Cek Autentikasi Pemilik
+async function authenticateUser() {
+  const supabase = await createClient();
+  const { data: { user }, error } = await supabase.auth.getUser();
+
+  if (error || !user) {
+    throw new Error('UNAUTHORIZED');
+  }
+
+  // Jika di sistemmu ada role khusus (opsional, uncomment jika diperlukan)
+  // const role = user.app_metadata?.role || user.user_metadata?.role;
+  // if (role && role !== 'owner' && role !== 'admin') {
+  //   throw new Error('FORBIDDEN');
+  // }
+
+  return user;
+}
+
 // 0. Action untuk mengambil data asli dari database
 export async function getAnalyticsDataAction(
   days: number = 7
 ): Promise<{ success: boolean; data?: AnalyticsInput; error?: string }> {
   try {
+    await authenticateUser();
     const range = ALLOWED_RANGES.includes(days) ? days : 7;
     const supabase = await createClient();
     const data = await getAnalyticsInput(supabase, range);
@@ -48,7 +67,9 @@ export async function getAnalyticsDataAction(
     console.error('Error fetching analytics data:', error);
     return {
       success: false,
-      error: error.message || 'Gagal mengambil data dari database.',
+      error: error.message === 'UNAUTHORIZED' 
+        ? 'Akses ditolak: Anda harus login.' 
+        : 'Gagal mengambil data dari database.',
     };
   }
 }
@@ -58,6 +79,8 @@ export async function generateAIReportAction(
   inputData: AnalyticsInput
 ): Promise<{ success: boolean; data?: AnalyticsReport; error?: string }> {
   try {
+    await authenticateUser();
+
     if (!hasSalesData(inputData)) {
       return {
         success: false,
@@ -70,7 +93,9 @@ export async function generateAIReportAction(
     console.error('Error generating AI report:', error);
     return {
       success: false,
-      error: error.message || 'Gagal mengambil analisis dari AI.',
+      error: error.message === 'UNAUTHORIZED'
+        ? 'Akses ditolak: Anda harus login.'
+        : 'Gagal mengambil analisis dari AI.',
     };
   }
 }
@@ -81,6 +106,17 @@ export async function askAIChatAction(
   contextData: AnalyticsInput
 ): Promise<{ success: boolean; reply?: string; error?: string }> {
   try {
+    await authenticateUser();
+
+    if (!query || typeof query !== 'string') {
+      return { success: false, error: 'Input tidak valid.' };
+    }
+
+    const sanitizedQuery = query.trim();
+    if (sanitizedQuery.length === 0 || sanitizedQuery.length > 500) {
+      return { success: false, error: 'Pertanyaan terlalu panjang atau kosong (Maksimal 500 karakter).' };
+    }
+
     const context = trimForAI(contextData);
     const prompt = `
 Kamu adalah asisten AI toko sembako pintar untuk TR Warung.
@@ -90,7 +126,7 @@ ${JSON.stringify(context.dailySales)}
 - Performa & Stok Produk: 
 ${JSON.stringify(context.productSales)}
 
-Pertanyaan Pemilik Toko: "${query}"
+Pertanyaan Pemilik Toko: "${sanitizedQuery}"
 
 Instruksi Respons:
 1. Jawab secara langsung, lugas, ramah, dan solutif berbasis data di atas.
@@ -105,7 +141,9 @@ Instruksi Respons:
     console.error('Error in AI Chat Action:', error);
     return {
       success: false,
-      error: error.message || 'Gagal memproses pertanyaan ke Gemini.',
+      error: error.message === 'UNAUTHORIZED'
+        ? 'Akses ditolak: Anda harus login.'
+        : 'Gagal memproses pertanyaan ke Gemini.',
     };
   }
 }
