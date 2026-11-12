@@ -1,10 +1,12 @@
 import "server-only";
 
-import type { createClient } from "@/lib/supabase/server";
+import type { SupabaseClient } from "@supabase/supabase-js";
+
+import type { Database } from "@/types/database";
 
 import { escapeHtml, sendTelegramMessage } from "./telegram";
 
-type Supabase = Awaited<ReturnType<typeof createClient>>;
+type Supabase = SupabaseClient<Database>;
 
 const MAX_ALERTS_PER_MESSAGE = 10; // jaga pesan tetap di bawah batas panjang Telegram
 const MAX_ALERT_AGE_DAYS = 3; // jangan kirim notifikasi yang sudah terlalu lama

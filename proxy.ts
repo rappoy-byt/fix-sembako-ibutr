@@ -8,7 +8,7 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // Lewati file statis & aset gambar agar proxy hanya berjalan untuk halaman.
-    "/((?!_next/static|_next/image|favicon.ico|.*\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
+    // Lewati file statis, aset gambar, dan endpoint cron (dilindungi CRON_SECRET, bukan sesi login).
+    "/((?!_next/static|_next/image|favicon.ico|api/cron|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
   ],
 };
